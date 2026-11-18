@@ -284,14 +284,12 @@ def endtimes():
     return out
 
 def accuracy():
-    m1 = json.load(open(os.path.join(RES, 'm1_results.json'), encoding='utf-8'))
     fa = os.path.join(RES, 'final_accuracy.json')
     if os.path.exists(fa): return json.load(open(fa, encoding='utf-8'))
-    def r(x): return f'{round(x[0])}대'
-    ev = m1['test_event_12_22h']; al = m1['test_all']
-    imp = round((1 - ev['model'][0] / ev['seasonal_naive'][0]) * 100)
+    bt = json.load(open(os.path.join(RES, 'final_backtest.json'), encoding='utf-8'))
+    m1 = json.load(open(os.path.join(RES, 'm1_results.json'), encoding='utf-8'))
+    imp = round((1 - bt['blend'] / bt['naive7']) * 100); imp2 = round((1 - bt['blend'] / bt['analog']) * 100)
     ser = json.load(open(os.path.join(RES, 'm1_test_series.json')))
-    # 예시: 시험기간 공연일 하루
     byd = collections.defaultdict(list)
     for x in ser: byd[x['t'][:10]].append(x)
     shows = load_shows(2025, 2025); sd = {s['date'].isoformat(): s for s in shows if s['venue'] == 'D'}
@@ -300,14 +298,17 @@ def accuracy():
     if ex_day:
         xs = sorted(byd[ex_day], key=lambda x: x['t'])
         example = {'date': ex_day, 'title': f"{ex_day} {sd[ex_day]['title'][:20]}", 'slots': [x['t'][11:16] for x in xs], 'actual': [round(x['y']) for x in xs], 'pred': [round(x['pred']) for x in xs], 'naive': [None if x['sn'] is None else round(x['sn']) for x in xs]}
-    return {'headline': f'공연일 MAE {round(ev["model"][0])}대', 'cards': [
-        {'k': '공연일 12~22시 재차 오차(MAE)', 'v': f'{round(ev["model"][0])}대', 's': f'1주 전 같은 시각 대비 {imp}% 개선', 'cls': 'grn'},
-        {'k': '전체 시간 오차(MAE)', 'v': f'{round(al["model"][0])}대', 's': '2025-10~12 시험기간'},
-        {'k': 'KSPO DOME 출차 러시 중심', 'v': '시작 후 205분', 's': '2024-07 7회 공연 중앙값 (범위 160~215)'},
-        {'k': '같은 15,000석 공연의 관객 차량', 'v': '207~1,366대', 's': '관객층에 따라 6.6배 차이 → 투어 1일차 보정 필요', 'cls': 'org'}],
-        'metrics': [{'name': '공연일 12~22시 재차', 'model': r(ev['model']), 'naive': r(ev['seasonal_naive']), 'profile': r(ev['profile']), 'n': ev['model'][1]},
-                    {'name': '전체 시간 재차', 'model': r(al['model']), 'naive': r(al['seasonal_naive']), 'profile': r(al['profile']), 'n': al['model'][1]}],
-        'note': '예비 결과: 2025-01~09 학습, 10~12 시험. 2025 원자료 241만 건으로 게이트·15분 단위 재학습 예정.', 'example': example, 'live': []}
+    live = []
+    lv = os.path.join(RES, 'live_validation.json')
+    if os.path.exists(lv): live = json.load(open(lv, encoding='utf-8'))
+    return {'headline': f"투어 보정 오차 {bt['blend']:.0f}대(-{imp}%)", 'cards': [
+        {'k': '공연일 12~22시 재차 오차(투어 보정)', 'v': f"{bt['blend']:.0f}대", 's': f"1주 전 같은 시각 대비 {imp}% · 유사일만 대비 {imp2}% 개선", 'cls': 'grn'},
+        {'k': '검증 표본', 'v': f"{bt['n_days']}일 · {bt['n_hours']}시간", 's': '2025 투어 2일차 이후 공연일, 하루씩 제외 검증'},
+        {'k': 'KSPO DOME 출차 러시 중심', 'v': '시작 후 205분', 's': '2024-07 7회 공연 중앙값(범위 160~215)'},
+        {'k': '같은 15,000석 공연의 관객 차량', 'v': '207~1,366대', 's': '관객층에 따라 6.6배 차이 → 투어 1일차 보정', 'cls': 'org'}],
+        'metrics': [{'name': '공연일 12~22시 재차(투어 2일차~)', 'model': f"{bt['blend']:.0f}대", 'naive': f"{bt['naive7']:.0f}대", 'profile': f"{bt['analog']:.0f}대(유사일만)", 'n': bt['n_hours']},
+                    {'name': '공연일 12~22시 재차(시간대 회귀, 2025-10~12 시험)', 'model': f"{round(m1['test_event_12_22h']['model'][0])}대", 'naive': f"{round(m1['test_event_12_22h']['seasonal_naive'][0])}대", 'profile': f"{round(m1['test_event_12_22h']['profile'][0])}대", 'n': m1['test_event_12_22h']['model'][1]}],
+        'note': bt['method'], 'example': example, 'live': live}
 
 def main():
     shows = load_shows(2025, 2026)

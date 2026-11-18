@@ -1,0 +1,1 @@
+{"blend": 396.4, "naive7": 441.6, "analog": 503.3, "n_days": 71, "n_hours": 720, "analog_all_days": 521.3, "naive7_all_days": 467.8, "method": "2025 연계 데이터, 투어 2일차 이후 공연일 71일, 12~22시, 하루씩 제외(leave-one-out). blend = 0.7×같은 투어 직전 공연일 실측(시작시각 정렬) + 0.3×유사일 중앙값"}
