@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>퇴장예보 · 올림픽공원 공연 후 출차·귀가 예보</title>
+<meta name="description" content="한국체육산업개발 공공데이터로 올림픽공원 공연 종료 후 출차 혼잡과 지하철역 혼잡을 미리 알려주는 서비스">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo">퇴장<b>예보</b></span><span class="sub" data-i18n="tagline">공연이 끝나기 전에, 나가는 길을 먼저</span></div>
+  <div class="lang" role="group" aria-label="language">
+    <button data-lang="ko" class="on">KO</button><button data-lang="en">EN</button><button data-lang="ja">JA</button><button data-lang="zh">中</button>
+  </div>
+</header>
+
+<section class="days" aria-label="날짜 선택"><div id="dayChips" class="chips"></div></section>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="car" class="on" data-i18n="tab_car">차량 관람객</button>
+  <button role="tab" data-tab="transit" data-i18n="tab_transit">대중교통·해외팬</button>
+  <button role="tab" data-tab="live" data-i18n="tab_live">실시간 주차</button>
+  <button role="tab" data-tab="ops" data-i18n="tab_ops">운영 브리핑</button>
+  <button role="tab" data-tab="acc" data-i18n="tab_acc">정확도</button>
+  <button role="tab" data-tab="data" data-i18n="tab_data">데이터·품질</button>
+</nav>
+
+<main>
+  <!-- 차량 관람객 -->
+  <section class="panel on" id="p-car">
+    <div id="showList" class="shows"></div>
+    <div class="cards" id="carCards"></div>
+    <div class="box">
+      <div class="box-h"><b data-i18n="exit_wave">공연 후 출차 혼잡 (15분 단위)</b><span class="hint" data-i18n="exit_wave_hint">막대가 높을수록 같은 시간에 나가려는 차량이 많습니다</span></div>
+      <div id="exitChart" class="chart"></div>
+      <div class="legend" id="exitLegend"></div>
+    </div>
+    <div class="box">
+      <div class="box-h"><b data-i18n="occ_title">예상 주차 중 차량 (보정값)</b><span class="hint" data-i18n="occ_hint">기관 실시간 수치에서 밤새 빠지지 않는 미출차 기록을 걷어낸 값</span></div>
+      <div id="occChart" class="chart"></div>
+    </div>
+    <div class="box tips" id="carTips"></div>
+  </section>
+
+  <!-- 대중교통 -->
+  <section class="panel" id="p-transit">
+    <div class="cards" id="transitCards"></div>
+    <div class="box">
+      <div class="box-h"><b data-i18n="station_title">공연 후 역별 혼잡 예보</b><span class="hint" data-i18n="station_hint">서울교통공사 역별 시간대 승차 실측(2024)과 공연 규모로 추정</span></div>
+      <div id="stationTable"></div>
+    </div>
+    <div class="box tips" id="transitTips"></div>
+  </section>
+
+  <!-- 실시간 -->
+  <section class="panel" id="p-live">
+    <div class="cards" id="liveCards"></div>
+    <div class="box">
+      <div class="box-h"><b data-i18n="live_title">기관 실시간 값 vs 보정값 (최근 48시간)</b><span class="hint" data-i18n="live_hint">새벽 바닥값은 실제로는 나간 차량의 미출차 기록으로 추정</span></div>
+      <div id="liveChart" class="chart"></div>
+    </div>
+    <div class="box">
+      <div class="box-h"><b data-i18n="agency_vs_ours">기관 예상 이용률 vs 퇴장예보</b></div>
+      <div id="agencyTable"></div>
+    </div>
+  </section>
+
+  <!-- 운영 브리핑 -->
+  <section class="panel" id="p-ops">
+    <div class="cards" id="opsCards"></div>
+    <div class="box">
+      <div class="box-h"><b data-i18n="ops_timeline">공연 시간표와 퇴장 예상 구간</b></div>
+      <div id="opsGantt" class="chart"></div>
+    </div>
+    <div class="box">
+      <div class="box-h"><b data-i18n="ops_gate">게이트별 출차 예상 (15분)</b></div>
+      <div id="opsGate" class="chart"></div>
+    </div>
+    <div class="box tips" id="opsTips"></div>
+  </section>
+
+  <!-- 정확도 -->
+  <section class="panel" id="p-acc">
+    <div class="cards" id="accCards"></div>
+    <div class="box"><div class="box-h"><b data-i18n="acc_backtest">과거 검증(백테스트)</b></div><div id="accTable"></div></div>
+    <div class="box"><div class="box-h"><b data-i18n="acc_example">예시: 예보 vs 실측</b></div><div id="accChart" class="chart"></div><div class="legend" id="accLegend"></div></div>
+    <div class="box"><div class="box-h"><b data-i18n="acc_live">현장 검증 기록</b></div><div id="accLive"></div></div>
+  </section>
+
+  <!-- 데이터·품질 -->
+  <section class="panel" id="p-data">
+    <div class="box"><div class="box-h"><b data-i18n="data_used">사용한 공공데이터</b></div><div id="dataTable"></div></div>
+    <div class="box"><div class="box-h"><b data-i18n="quality_title">데이터 품질 점검 결과와 개선 제안</b></div><div id="qualityTable"></div></div>
+    <div class="box"><div class="box-h"><b data-i18n="endtime_title">새로 만든 데이터: 공연 실제 퇴장 시작 추정</b></div><div id="endTable"></div>
+      <p class="hint"><a href="data/endtimes.csv" download data-i18n="download_csv">CSV 내려받기</a> · <a href="data/forecast.json" target="_blank">forecast.json</a> · <a href="data/realtime.json" target="_blank">realtime.json</a> <span data-i18n="api_note">(챗봇·앱이 그대로 불러 쓸 수 있는 공개 JSON)</span></p></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div id="genInfo"></div>
+  <div data-i18n="foot_note">예보는 공공데이터 기반 추정이며 현장 안내를 우선합니다. 출처: 한국체육산업개발(주) 공공데이터, 서울교통공사, 기상청.</div>
+</footer>
+<script src="assets/i18n.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

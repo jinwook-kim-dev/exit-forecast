@@ -1,0 +1,32 @@
+name: update-forecast
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # 30분마다(UTC): 실시간 주차 기록 + 예보 갱신
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: update, cancel-in-progress: false }
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install numpy==2.1.3
+      - name: 공연 일정 갱신(6시간마다)
+        run: |
+          H=$(date -u +%H); M=$(date -u +%M)
+          if [ $((10#$H % 6)) -eq 0 ] && [ $((10#$M)) -lt 30 ]; then python pipeline/fetch_events.py || true; fi
+      - name: 실시간 주차 기록
+        run: python pipeline/logger_once.py || echo "logger failed (site unreachable)"
+      - name: 예보 생성
+        run: python pipeline/build_site.py
+      - name: 커밋
+        run: |
+          git config user.name "exit-forecast-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A docs/data pipeline/state
+          git diff --cached --quiet || git commit -m "auto: forecast update $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
